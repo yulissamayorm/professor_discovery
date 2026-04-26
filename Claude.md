@@ -59,7 +59,7 @@ Wait for my response.
 ### Phase 4 — Repeat
 Go back to Phase 1 for the next article. Continue until all articles are processed.
 ### Phase 5 — Write the professor section
-Only when I say "write the section" (or equivalent), produce the final markdown using the exact template below. Use only information that survived the feedback loops.--
+Only when I say "write the section" (or equivalent), produce the final markdown using the exact template below. Use only information that survived the feedback loops. If the professor has more than one article, also compute and show the professor-level rollup score (simple mean of all article-level overall scores) per the rule defined further below.--
 ## Section template — produce this only in Phase 5
 ### Professor: [Full Name]
 **Affiliation:** [University, department]
@@ -130,7 +130,9 @@ Score each variable 1–10 using the rubric below. Be honest; do not inflate. A 
 | My personal interest | | (ask me) |
 **Overall score computation:**- Compute the simple average of the 8 scores above, rounded to one decimal place.- Show the arithmetic: `Overall = (s1 + s2 + s3 + s4 + s5 + s6 + s7 + s8) / 8 = X.X`- If I have not yet provided a personal interest score, compute the average of the 7 auto-scored variables and label it "provisional."
 **Overall score:** [X.X / 10]
-**One-sentence verdict:** [Can I ship a credible GitHub project inspired by this lab? Yes/no and why.]--
+**One-sentence verdict:** [Can I ship a credible GitHub project inspired by this lab? Yes/no and why.]
+## Professor-level rollup across articles
+The 8-variable rubric above is **per article**. When a professor has more than one article, compute a **professor-level overall score** as the simple arithmetic mean of every article's article-level overall score, rounded to one decimal place.- Show the arithmetic explicitly: `Professor overall = (a1 + a2 + ... + aN) / N = X.X`- If any article is still provisional (missing personal-interest score), the professor-level score is also labelled **provisional** and uses each article's currently reported value (a provisional 7-variable mean is fine).- The ranking table at the top of `professors_summary.md` is sorted by this professor-level mean, descending.- Each article keeps its own ranking table and verdict; the rollup is reported once per professor.--
 ## After producing the section
 Once the section is written, do two more things:
 1. **Generate the row for the master ranking table** at the bottom of my survey file, using this format:
