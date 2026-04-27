@@ -6,7 +6,79 @@ A rolled-up view of every professor evaluated, with each paper, its dataset situ
 
 | Rank | Professor | Affiliation | Articles | Dominant Modality | Professor-Level Overall | Status |
 |------|-----------|-------------|----------|-------------------|--------------------------|--------|
-| 1 | [Dwight S. Seferos](#dwight-s-seferos) | University of Toronto | 3 | Tabular molecular descriptors (RDKit from SMILES) | 6.2 / 10 | Provisional — all three articles awaiting personal-interest scores |
+| 1 | [Andrew A. Beharry](#andrew-a-beharry) | University of Toronto Mississauga | 1 | Tabular molecular descriptors / Morgan fingerprints (RDKit from SMILES) | 6.4 / 10 | Provisional — single article; awaiting personal-interest score |
+| 2 | [Dwight S. Seferos](#dwight-s-seferos) | University of Toronto | 3 | Tabular molecular descriptors (RDKit from SMILES) | 6.2 / 10 | Provisional — all three articles awaiting personal-interest scores |
+
+---
+
+## Andrew A. Beharry
+
+**Affiliation:** Department of Chemical and Physical Sciences, University of Toronto Mississauga (cross-appointed to Department of Chemistry, University of Toronto)
+
+**Lab focus (one sentence):** Photopharmacology — designing photocaged and photoactivatable small molecules (e.g., coumarin-based DEAC photocages on natural-product drugs) to give light-controlled spatial and temporal release of bioactive compounds for cancer and antimicrobial applications.
+
+**Lab webpage / Scholar:** andrew.beharry@utoronto.ca (lab webpage not yet confirmed — to be verified)
+
+### Article 1: Antimicrobial Efficacy of Photocaged β-Lapachone in B. subtilis Biofilms
+
+- **Full citation:** Hudson, E., Faylinn, C., Lopez-Miranda, I. R., Milstein, J. N., & Beharry, A. A. (2024). Antimicrobial efficacy of photocaged β-lapachone in *Bacillus subtilis* biofilms. *ChemPhotoChem*, 8(12), e202400164. DOI: 10.1002/cptc.202400164
+- **Problem in plain English:** Bacterial biofilms (on catheters, implants, wounds) require 100–1000× higher antimicrobial doses than free-floating bacteria. β-lapachone (a natural product from the lapacho tree) inhibits biofilms by blocking catalase, but has bad off-target toxicity (methemoglobinemia from iron oxidation in blood) and a ~20-min half-life. The paper photocages β-lapachone with a diethylaminocoumarin (DEAC) so it is biologically inert until 420 nm violet light cleaves the cage, giving spatially and temporally controlled antibiotic activity.
+- **ML task type:** No ML in the paper. Reframed as **structure → antimicrobial activity regression**: Morgan fingerprints / RDKit descriptors from SMILES → log(MIC) or log(EC₅₀) for B. subtilis (or, more broadly, biofilm-forming Gram-positive bacteria). Alternative reframe (noted, not chosen for the headline): ML surrogate for KatA (catalase) docking scores, mirroring the paper's GOLD docking analysis.
+- **Input representation:**
+  - Modality: Tabular molecular descriptors and/or Morgan fingerprints derived from SMILES
+  - Preprocessing: PubChem name → SMILES lookup; RDKit descriptor + Morgan fingerprint computation. Optional: a "photocaged vs. native" boolean feature for the small subset where photocaged analogues exist.
+- **Output representation:** log(MIC) or log(EC₅₀) for B. subtilis (primary target, distinct from the Seferos articles' battery-performance targets); units in mol L⁻¹ or μg mL⁻¹.
+- **Model architecture (brief):** Gradient boosted regressor (XGBoost or LightGBM) with ridge regression as a linear baseline.
+- **Dataset used in the paper:**
+  - Name: Author-generated experimental data on photocaged β-lapachone (compound 1) and native β-lapachone
+  - Size: 1 photocaged compound + 1 native control + 1 coumarin byproduct control (DEAC-OH); 5-point concentration range per compound
+  - Source: Wet-lab synthesis, 96-well plate biofilm assays, agar well diffusion, catalase bubble assay, and GOLD docking against KatA (PDB 4e37) at University of Toronto Mississauga
+  - Public? **Explicitly no** — the paper's Data Availability Statement reads "Research data are not shared."
+  - Link: Not provided in paper
+- **Reported headline metric:** Irradiated compound 1 inhibits B. subtilis biofilm growth with EC₅₀ = 0.14 mM, matching native β-lapachone (EC₅₀ = 0.15 mM). Dark control = no inhibition (no dark toxicity). 75% photo-uncaging at 20 min / 0.5 W·cm⁻² (420 nm); full uncaging at ~70 min.
+- **Public alternatives to replicate or approximate this:**
+  - CO-ADD (Community for Open Antimicrobial Drug Discovery) — ~300K compound-bacteria activity records including B. subtilis MIC values — match: **close** (direct B. subtilis activity data with the same Gram-positive context as the paper) — access: medium (free academic registration required) — https://www.co-add.org
+  - ChEMBL antibacterial bioactivity subset — millions of bioactivity records, filter by target organism (B. subtilis) and assay type (MIC) — match: **medium-to-close** (broader, but the filtered subset overlaps strongly with the paper's setting) — access: easy (direct download / Python `chembl_webresource_client`) — https://www.ebi.ac.uk/chembl/
+  - PubChem BioAssay — keyword search for biofilm-inhibition assays; broader still — match: **medium** — access: easy (pubchempy / REST API) — https://pubchem.ncbi.nlm.nih.gov/
+- **Data access difficulty (for the paper's own dataset):** Very hard — author explicitly states data is not shared.
+- **Tooling I would need to learn:** RDKit (descriptors + Morgan fingerprints), pubchempy (name → SMILES lookup), XGBoost or LightGBM, ChEMBL or CO-ADD API client. pandas + scikit-learn already familiar. Optional for the alternative docking-surrogate angle: AutoDock Vina + a PDB structure of KatA (PDB 4e37 used in the paper).
+- **Portfolio angle:** Headline: *"Predicting antimicrobial activity against biofilm-forming bacteria from molecular structure — a B. subtilis MIC benchmark."* Filter CO-ADD or ChEMBL to compounds with B. subtilis MIC values, featurize via RDKit Morgan fingerprints + descriptors, train XGBoost vs. ridge baseline on log(MIC). Single Jupyter notebook with k-fold CV, predicted-vs-actual scatter, feature-importance plot. Stretch goal: pull the catalase-inhibitor sub-class (using known KatA inhibitors as a label set) and probe whether they cluster in feature space — a small mechanistic nod to the paper's catalase-inhibition finding.
+
+#### Article 1 ranking
+
+| Variable | Score (1–10) | One-line justification |
+|---|---|---|
+| Data availability | 7 | CO-ADD specifically covers B. subtilis MIC values; ChEMBL is a broad fallback covering antimicrobial assays generally |
+| Data access ease | 7 | CO-ADD requires free academic registration; ChEMBL is a direct download with a well-supported Python client |
+| Task tractability on laptop / free GPU | 8 | Small-molecule SAR via tabular regression trains in seconds on CPU; no GPU required |
+| Tooling alignment with my current skills | 5 | Core stack is RDKit + sklearn/XGBoost (familiar core; RDKit + ChEMBL client are new pieces); GNNs not required for the headline angle |
+| Problem clarity | 7 | log(MIC) regression is textbook-clean; main ambiguity is which assay format and bacterial strain panel to standardize on |
+| Reproducibility signals | 3 | Paper explicitly states "Research data are not shared"; no code released; the GOLD docking workflow is reproducible in principle but not published as a dataset |
+| Portfolio impact | 8 | Antibiotic-resistance + photocaged drugs is highly recruiter-legible; antimicrobial discovery is a hot ML application area with both academic and industry pull |
+| My personal interest | TBD | Awaiting student score |
+
+**Article 1 overall score:** Provisional (7 of 8 variables): (7 + 7 + 8 + 5 + 7 + 3 + 8) / 7 = 45 / 7 = **6.4 / 10**
+
+**Article 1 verdict:** A credible GitHub project is achievable using CO-ADD or ChEMBL as the data source, framed as structure→MIC regression for B. subtilis (or biofilm-forming Gram-positive bacteria more broadly). The paper's actual experimental data is unavailable, so the project approximates the activity-prediction task that motivates the photocaging strategy rather than reproducing the paper's specific findings.
+
+### Professor-level rollup
+
+- **Article 1 overall:** 6.4 (provisional)
+- **Professor overall** = 6.4 / 1 = **6.4 / 10** (provisional — single article; awaiting personal-interest score)
+
+### Summary for this professor
+
+- **Common thread across their work:** Only one article processed so far. Apparent direction (from Article 1 + cited prior work [ref. 19, JACS 2023]): photopharmacology — using photoremovable protecting groups (especially coumarin-based DEAC photocages) to give light-controlled spatial and temporal release of bioactive natural products, applied across cancer and antimicrobial settings.
+- **Dominant data modality:** Tabular molecular descriptors / Morgan fingerprints derived from SMILES (the standard small-molecule SAR featurization stack).
+- **Biggest obstacle for me to replicate their work publicly:** Data access — paper explicitly states experimental data is not shared. Any portfolio project will use public antimicrobial-activity databases (CO-ADD / ChEMBL) as a proxy rather than reproducing the paper's measurements.
+- **Skills I would gain by working with them:** Photopharmacology / photocage chemistry; small-molecule antimicrobial SAR; biofilm biology; molecular docking against bacterial enzyme targets (e.g., KatA); standard medicinal-chemistry ML featurization (RDKit + Morgan fingerprints); ChEMBL / CO-ADD database querying.
+
+### Open items / notes
+
+- Lab webpage URL for Prof. Beharry not yet confirmed — verify before finalizing.
+- Personal interest score for Article 1 not yet provided by student.
+- Beharry has only one article processed so far; rank may shift substantially as additional articles are added and the simple-mean rollup updates.
+- CO-ADD academic registration not yet completed — confirm dataset accessibility before relying on it for the portfolio project.
 
 ---
 
