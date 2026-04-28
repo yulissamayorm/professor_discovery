@@ -6,8 +6,84 @@ A rolled-up view of every professor evaluated, with each paper, its dataset situ
 
 | Rank | Professor | Affiliation | Articles | Dominant Modality | Professor-Level Overall | Status |
 |------|-----------|-------------|----------|-------------------|--------------------------|--------|
-| 1 | [Andrew A. Beharry](#andrew-a-beharry) | University of Toronto Mississauga | 3 | Small-molecule descriptors (RDKit) for SAR; cohort RNA-seq + clinical features for biomarker stratification | 6.4 / 10 | Provisional — all three articles awaiting personal-interest scores |
-| 2 | [Dwight S. Seferos](#dwight-s-seferos) | University of Toronto | 3 | Tabular molecular descriptors (RDKit from SMILES) | 6.2 / 10 | Provisional — all three articles awaiting personal-interest scores |
+| 1 | [Benjamín Sánchez-Lengeling](#benjamín-sánchez-lengeling) | University of Toronto (department to be confirmed) | 1 | SMILES sequences + public chemistry benchmarks (QM9, ZINC); generative ML (VAE) | 7.7 / 10 | Provisional — single middle-authored PhD-era paper; awaiting personal-interest score and confirmation against independent U of T group's first-author work |
+| 2 | [Andrew A. Beharry](#andrew-a-beharry) | University of Toronto Mississauga | 3 | Small-molecule descriptors (RDKit) for SAR; cohort RNA-seq + clinical features for biomarker stratification | 6.4 / 10 | Provisional — all three articles awaiting personal-interest scores |
+| 3 | [Dwight S. Seferos](#dwight-s-seferos) | University of Toronto | 3 | Tabular molecular descriptors (RDKit from SMILES) | 6.2 / 10 | Provisional — all three articles awaiting personal-interest scores |
+
+---
+
+## Benjamín Sánchez-Lengeling
+
+**Affiliation:** University of Toronto (specific department to be confirmed — likely Chemistry and/or Computer Science based on his research area). At the time of Article 1 below he was a PhD student in Alán Aspuru-Guzik's group at Harvard.
+
+**Lab focus (one sentence):** **Inferred** from Article 1 + Sánchez-Lengeling's broader publication history (Harvard PhD → Google Brain → U of T faculty): machine learning for molecular and materials design, with emphasis on generative models (VAEs, GANs, graph neural nets) for chemical-space exploration, property prediction, and inverse design. **Verify against the lab's current Toronto-era publications before treating this as authoritative.**
+
+**Lab webpage / Scholar:** Not yet provided — needs to be sourced.
+
+### Article 1: Variational Autoencoder for Continuous Molecular Representation (Foundational Generative-Chemistry Paper)
+
+- **Full citation:** Gómez-Bombarelli, R., Wei, J. N., Duvenaud, D., Hernández-Lobato, J. M., **Sánchez-Lengeling, B.**, Sheberla, D., Aguilera-Iparraguirre, J., Hirzel, T. D., Adams, R. P., & Aspuru-Guzik, A. (2018). Automatic chemical design using a data-driven continuous representation of molecules. *ACS Central Science*, 4(2), 268–276. DOI: 10.1021/acscentsci.7b00572
+- **Authorship caveat:** Sánchez-Lengeling is a **middle author** (5th of 10), authored during his PhD at Harvard in Alán Aspuru-Guzik's group — **not from his current independent group at University of Toronto**. The four co-first authors (marked #) are Gómez-Bombarelli, Wei, Duvenaud, and Hernández-Lobato; Aspuru-Guzik is sole corresponding author. **Treat this as evidence of the kind of research Sánchez-Lengeling was trained on rather than as representative of his independent research direction.**
+- **Problem in plain English:** Drug and material design is an optimization problem in molecular space — but molecular space is **vast** (10²³ to 10⁶⁰ drug-like molecules), **discrete** (atoms are atoms; you can't take half-steps), and **unstructured** (no natural distance metric). Existing methods (virtual screening of fixed libraries, genetic algorithms with hand-crafted mutation rules) can't use gradient-based optimization because there are no gradients in discrete space. The paper learns a *continuous* real-valued representation of molecules that supports gradient-based optimization, interpolation, and standard generative-modeling techniques.
+- **ML task type:** This **IS** a primary ML paper — no reframing needed. Generative modeling (VAE) + property prediction + Bayesian optimization in latent space, demonstrated on molecular design.
+- **Input representation:**
+  - Modality: SMILES strings, one-hot encoded over a small character vocabulary (35 chars for ZINC, 22 for QM9), padded to fixed length (120 for ZINC, 34 for QM9)
+  - Preprocessing: Canonicalize SMILES via RDKit; one-hot encode; pad
+- **Output representation:** Three coupled outputs — (i) reconstructed SMILES via the decoder, (ii) a continuous latent vector (156 dim for QM9, 196 dim for ZINC), (iii) property predictions (logP / QED / SAS for ZINC; HOMO / LUMO / electronic spatial extent R² for QM9) from the latent vector via an MLP head
+- **Model architecture (brief):** **Variational autoencoder.** Encoder = three 1D convolutional layers + one fully-connected layer. Decoder = three GRU layers (488-dim hidden for ZINC, 500 for QM9). Property predictor = MLP (2 × 1000 neurons, or 3 × 67 neurons) on the latent vector. Jointly trained on reconstruction loss + variational KL penalty + property regression loss. A Gaussian process is later trained on the latent space for downstream Bayesian optimization of (5 × QED − SAS).
+- **Dataset used in the paper:**
+  - Name: **QM9** (134K small molecules with ≤9 heavy atoms + DFT-computed properties) and **ZINC250k** (250K drug-like molecules randomly sampled from ZINC)
+  - Size: 108K (QM9 training subset) and 250K (ZINC)
+  - Source: Public benchmarks — QM9 from Ramakrishnan et al. *Sci. Data* 2014; ZINC from Irwin et al. *J. Chem. Inf. Model.* 2012
+  - Public? **Yes — both are gold-standard open benchmarks.**
+  - Link: QM9 → http://quantum-machine.org/datasets/ ; ZINC → https://zinc.docking.org/ ; both also one-line loadable via DeepChem / MoleculeNet
+- **Reported headline metric:** ~73–79% SMILES validity rate near training-set points (4% for randomly-selected latent points). Joint property training organizes the latent space so molecules cluster by property value (Figure 3 PCA plots). Latent-space Bayesian optimization on (5×QED − SAS) consistently beats genetic-algorithm and random-search baselines, finding molecules in the top decile when seeded from the bottom decile. Property-prediction MAE on QM9 LUMO: 0.16 eV (competitive with graph convolutions at 0.15 eV).
+- **Public alternatives to replicate or approximate this:**
+  - **Direct match — released code + data:** https://github.com/aspuru-guzik-group/chemical_vae — match: **direct, perfect** — access: easy (clone + run)
+  - **MoleculeNet (DeepChem)** benchmark suite — wraps QM9, ZINC, with standardized splits + evaluation — match: **direct** — access: easy (`pip install deepchem`) — https://moleculenet.org/
+  - **Modern baselines for comparison:** JT-VAE (Jin et al. 2018, https://github.com/wengong-jin/icml18-jtnn), GraphAF (Shi et al. 2020), MoFlow (Zang & Wang 2020), Chemformer (Irwin et al. 2022) — match: close (newer architectures for the same generative-chemistry task) — access: easy (all on GitHub)
+- **Data access difficulty (for the paper's own dataset):** **Easy** — this is the rare paper where the authors release everything publicly.
+- **Tooling I would need to learn:** **PyTorch (or TensorFlow / Keras as the paper uses)**, **VAE architecture and training** (encoder + decoder + variational KL loss + reparameterization trick — a substantial new piece if you've only done supervised learning before), **RDKit** (already in the toolchain from prior professors' projects), **Gaussian processes** for the latent-space Bayesian optimization step (scikit-learn or GPyTorch). Optional for a stretch goal: graph neural networks (PyTorch Geometric or DGL) for a graph-VAE comparison.
+- **Portfolio angle:** This is meaningfully different from any prior portfolio angle in the survey because it's **primary ML** (no reframing needed). Three viable framings:
+  1. **Reproduction-with-extension:** *"Reproducing the molecular VAE (Gómez-Bombarelli et al. 2018) and benchmarking against modern baselines (JT-VAE, GraphAF, Chemformer)."* Use the released code as a starting point, train on a subsampled ZINC for compute reasons, then add one modern baseline. Single notebook with reconstruction accuracy, validity %, novelty %, and property-optimization comparison.
+  2. **Domain transfer:** *"Applying the molecular VAE framework to [a specific chemistry domain you care about]."* Train the VAE on a domain-specific subset and use latent-space optimization to propose new candidates.
+  3. **Architecture comparison:** *"SMILES-VAE vs. graph-VAE vs. transformer-VAE on a single benchmark"* — three small models, one notebook, head-to-head on QM9-subset reconstruction and property prediction.
+
+#### Article 1 ranking
+
+| Variable | Score (1–10) | One-line justification |
+|---|---|---|
+| Data availability | 10 | QM9 and ZINC are gold-standard public benchmarks; the paper uses them directly and releases its training subsets via GitHub |
+| Data access ease | 9 | DeepChem / MoleculeNet wrap both datasets with one-line loaders; only minor friction is canonicalization preprocessing |
+| Task tractability on laptop / free GPU | 5 | Full VAE training on 250K ZINC across 120 epochs takes hours on a free Colab GPU; viable with subsampling to ~25K and smaller latent dim, but not laptop-CPU friendly |
+| Tooling alignment with my current skills | 4 | VAE architecture + variational KL loss + reparameterization + GP-based latent-space Bayesian optimization is a substantial step up from the tabular RDKit-XGBoost pipelines used in prior professors' projects |
+| Problem clarity | 8 | Generative-chemistry benchmarks (reconstruction accuracy, validity %, novelty %, uniqueness, property optimization) are well-established and standardized |
+| Reproducibility signals | 10 | Code AND data both released on GitHub with full hyperparameters; this is the rare 10-out-of-10 reproducibility case |
+| Portfolio impact | 8 | Foundational generative-chemistry paper (~3000 citations); pure 2018 replication risks reading tutorial-level in 2026, but extension or modern-baseline comparison reads strongly to recruiters in pharma / biotech / ML roles |
+| My personal interest | TBD | Awaiting student score |
+
+**Article 1 overall score:** Provisional (7 of 8 variables): (10 + 9 + 5 + 4 + 8 + 10 + 8) / 7 = 54 / 7 = **7.7 / 10**
+
+**Article 1 verdict:** A **highly credible** GitHub project is achievable using the released code as a starting point, with the primary cost being VAE training compute (hours on free Colab GPU) and the new ML tooling (variational autoencoders, GP-based Bayesian optimization). The strongest portfolio framings are reproduction-with-extension (compare against a modern baseline like JT-VAE) or domain transfer (apply the VAE framework to a chemistry domain you care about) — pure replication risks reading as tutorial-level given the paper's age.
+
+### Professor-level rollup
+
+- **Article 1 overall:** 7.7 (provisional)
+- **Professor overall** = 7.7 / 1 = **7.7 / 10** (provisional — single middle-authored PhD-era paper; awaiting personal-interest score)
+
+### Summary for this professor
+
+- **Common thread across their work:** Only one article processed so far, and it's a co-authored PhD-era paper rather than independent-PI work. Apparent direction (per Article 1 + Sánchez-Lengeling's broader publication history at Harvard / Google Brain / Toronto): **machine learning for molecular and materials design** — generative models, latent-space optimization, property prediction across chemistry. **Verify the lab's current Toronto-era research direction by pulling first-author or corresponding-author papers from his independent group.**
+- **Dominant data modality:** SMILES strings (sequence-based) and large public chemistry benchmarks (QM9, ZINC). Likely also graph representations and quantum-chemistry features in his more recent work — to be confirmed.
+- **Biggest obstacle for me to replicate their work publicly:** **Not data** (Article 1 uses fully public datasets and releases its code) but **ML tooling step-up** — variational autoencoders + variational training + Bayesian optimization in latent space is a substantial complexity jump from the tabular RDKit-XGBoost pipelines used for prior professors.
+- **Skills I would gain by working with them:** Variational autoencoders for chemistry; sequence-to-sequence learning on SMILES; latent-space Bayesian optimization with Gaussian processes; modern generative chemistry (likely also graph VAEs, transformer-based molecular language models, diffusion models for molecular design); rigorous benchmarking on QM9 / ZINC / MoleculeNet; PyTorch / TensorFlow at a more advanced level than tabular sklearn pipelines.
+
+### Open items / notes
+
+- Affiliation, department, and lab webpage for Prof. Sánchez-Lengeling at University of Toronto **not yet confirmed** — verify (likely Chemistry and/or Computer Science) before finalizing.
+- **Critical gap:** Article 1 is a **middle-authored PhD-era paper from Harvard**, not first-author or corresponding-author work from his independent University of Toronto group. The portfolio rubric scores the *article's* potential; the *advisor* rubric should also weigh whether his current Toronto group does similar work. Before relying on this professor-level score, pull at least one first-author or corresponding-author paper from his independent group at U of T and re-rank.
+- Personal interest score for Article 1 not yet provided by student.
+- Article 1's score of 7.7 is substantially higher than any prior professor's (Beharry 6.4, Seferos 6.2). This is a real signal — primary ML papers with released code on gold-standard benchmarks score very differently from experimental chemistry papers that have to be creatively reframed for ML. Worth keeping in mind when comparing across the survey: the rubric is the same but the gap reflects genuine portfolio-feasibility differences between primary-ML and experimental-chemistry research outputs.
 
 ---
 
