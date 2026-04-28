@@ -6,7 +6,7 @@ A rolled-up view of every professor evaluated, with each paper, its dataset situ
 
 | Rank | Professor | Affiliation | Articles | Dominant Modality | Professor-Level Overall | Status |
 |------|-----------|-------------|----------|-------------------|--------------------------|--------|
-| 1 | [Andrew A. Beharry](#andrew-a-beharry) | University of Toronto Mississauga | 1 | Tabular molecular descriptors / Morgan fingerprints (RDKit from SMILES) | 6.4 / 10 | Provisional — single article; awaiting personal-interest score |
+| 1 | [Andrew A. Beharry](#andrew-a-beharry) | University of Toronto Mississauga | 2 | Small-molecule descriptors (RDKit) for SAR; cohort RNA-seq + clinical features for biomarker stratification | 6.6 / 10 | Provisional — both articles awaiting personal-interest scores |
 | 2 | [Dwight S. Seferos](#dwight-s-seferos) | University of Toronto | 3 | Tabular molecular descriptors (RDKit from SMILES) | 6.2 / 10 | Provisional — all three articles awaiting personal-interest scores |
 
 ---
@@ -15,7 +15,7 @@ A rolled-up view of every professor evaluated, with each paper, its dataset situ
 
 **Affiliation:** Department of Chemical and Physical Sciences, University of Toronto Mississauga (cross-appointed to Department of Chemistry, University of Toronto)
 
-**Lab focus (one sentence):** Photopharmacology — designing photocaged and photoactivatable small molecules (e.g., coumarin-based DEAC photocages on natural-product drugs) to give light-controlled spatial and temporal release of bioactive compounds for cancer and antimicrobial applications.
+**Lab focus (one sentence):** Chemical biology and medicinal chemistry — two intersecting threads: (i) **fluorescent chemosensors** for clinically actionable enzyme activity (e.g., ratiometric probes for human carboxylesterase 2 to predict Irinotecan response in pancreatic cancer), and (ii) **photoactivatable / photocaged small molecules** (e.g., coumarin-based DEAC photocages on natural-product drugs) for spatially and temporally controlled release of bioactive compounds in cancer and antimicrobial settings.
 
 **Lab webpage / Scholar:** andrew.beharry@utoronto.ca (lab webpage not yet confirmed — to be verified)
 
@@ -61,24 +61,69 @@ A rolled-up view of every professor evaluated, with each paper, its dataset situ
 
 **Article 1 verdict:** A credible GitHub project is achievable using CO-ADD or ChEMBL as the data source, framed as structure→MIC regression for B. subtilis (or biofilm-forming Gram-positive bacteria more broadly). The paper's actual experimental data is unavailable, so the project approximates the activity-prediction task that motivates the photocaging strategy rather than reproducing the paper's specific findings.
 
+### Article 2: Ratiometric Fluorescent Chemosensor for hCES2 Activity in Pancreatic Cancer Patient-Derived Xenografts
+
+- **Full citation:** Kailass, K., Sadovski, O., Capello, M., Kang, Y., Fleming, J. B., Hanash, S. M., & Beharry, A. A. (2019). Measuring human carboxylesterase 2 activity in pancreatic cancer patient-derived xenografts using a ratiometric fluorescent chemosensor. *Chemical Science*, 10(36), DOI: 10.1039/c9sc00283a
+- **Problem in plain English:** Pancreatic cancer patients are commonly treated with FOLFIRINOX, which contains **Irinotecan** — a prodrug that only becomes active once **human carboxylesterase 2 (hCES2)** hydrolyzes it into SN-38, a topoisomerase 1 inhibitor. Patients with low hCES2 activity respond poorly to Irinotecan. Existing assays for measuring hCES2 (p-NPA colorimetric, immunoblot, mass spectrometry) are inaccurate, slow, or cross-reactive with the closely related hCES1, making them impractical in a clinical setting. The paper develops a single-step, hCES2-selective ratiometric fluorescent probe that can be applied directly to live cells and patient-derived tissue.
+- **ML task type:** No ML in the paper. The natural ML reframe is *not* probe-design (data-poor) but the **downstream clinical biomarker question** the probe enables: a **survival-regression / drug-response-prediction** task — given CES2 expression (and other clinical / molecular features), predict Irinotecan response in pancreatic cancer patients. This is genuinely distinct from Article 1's small-molecule SAR angle.
+- **Input representation:**
+  - Modality: Patient-cohort tabular data — RNA-seq-derived gene expression (CES2 and selected covariates) plus clinical features (age, stage, KRAS mutation status, treatment regimen). Optional: small-molecule descriptors of the probe itself for a secondary probe-design subtask.
+  - Preprocessing: TCGA / GDC tabular pull (cBioPortal API or `cBioPortalData` / `pyTCGA`-style clients); RNA-seq normalization to log₂(TPM + 1) or DESeq2 variance-stabilized counts.
+- **Output representation:** Survival outcome (overall survival or progression-free survival) for FOLFIRINOX-treated pancreatic adenocarcinoma patients; or, for the cell-line side validation, log(IC₅₀) of Irinotecan in pancreatic cancer cell lines.
+- **Model architecture (brief):** Cox proportional-hazards regression with CES2 expression as the primary feature + clinical covariates; compared against random-forest survival (`scikit-survival`) and a simple gradient-boosted IC₅₀ regressor for the cell-line external validation.
+- **Dataset used in the paper:**
+  - Name: Author-generated experimental data (probe synthesis + characterization, SU.86.86 cell line ± CES2 overexpression vector, two patient-derived xenografts: PDX112 and PDX121)
+  - Size: 1 probe synthesized + 2 controls; 1 cell line ± vector pair; 2 PDXs
+  - Source: University of Toronto Mississauga (probe development); MD Anderson Cancer Center (PDX models)
+  - Public? No — paper does not release data; PDX tissues themselves are biobanked at MD Anderson
+  - Link: Not provided in paper
+- **Reported headline metric:** 40-fold fluorescence turn-on at 605 nm with hCES2 (110 nM); selective for hCES2 over hCES1 (no measurable activity on hCES1 even at 440 nM); Km = 6.6 ± 3.7 μM, kcat = 0.26 ± 0.04 s⁻¹; PDX112 vs PDX121 ratiometric Fred/Fyellow medians of 0.98 vs 0.34 (p < 0.0001), tracking Western-blot CES2 expression differences.
+- **Public alternatives to replicate or approximate this:**
+  - **TCGA-PAAD (Pancreatic Adenocarcinoma cohort)** — ~185 patients with RNA-seq, mutations, treatment metadata, and survival outcomes — match: **close** for the downstream Irinotecan-response biomarker question — access: easy (free via GDC Data Portal / cBioPortal; Python access via `cBioPortalData` or REST) — https://portal.gdc.cancer.gov/projects/TCGA-PAAD
+  - **DepMap (Cancer Cell Line Encyclopedia + PRISM/CTRP drug-sensitivity)** — pancreatic cancer cell lines with CES2 expression and Irinotecan/SN-38 IC₅₀ values — match: **medium** (cell-line proxy for patient response, but directly addresses the "does CES2 expression predict Irinotecan sensitivity?" question) — access: easy (CSV downloads + Python `depmap` client) — https://depmap.org/portal/
+  - **GDSC (Genomics of Drug Sensitivity in Cancer)** — drug sensitivity across ~1,000 cell lines including pancreatic — match: **medium** (broader cell-line coverage; useful for sanity check) — access: easy (https://www.cancerrxgene.org/)
+- **Data access difficulty (for the paper's own dataset):** Very hard — the patient-derived xenograft tissue is biobanked at MD Anderson and not released; probe characterization data is in the paper / SI but not as a structured release.
+- **Tooling I would need to learn:** **lifelines** or **scikit-survival** for Cox PH and random-forest survival models (new but Python-native and well-documented), **cBioPortalData** / GDC API client (new but standard REST), pandas + sklearn already familiar. Optional: pyDESeq2 for principled RNA-seq normalization. The probe-design alternative angle would also use RDKit (carry-over from Article 1).
+- **Portfolio angle (distinct from Article 1):** Headline: *"Predicting pancreatic cancer Irinotecan response from CES2 expression — a TCGA-PAAD biomarker-stratification benchmark."* Pull TCGA-PAAD via cBioPortal, filter to patients with FOLFIRINOX or Irinotecan-containing regimens, fit a Cox proportional-hazards model with CES2 expression as the primary feature plus age / stage / KRAS as covariates. Compare against random-forest survival (`scikit-survival`). Kaplan-Meier curves stratified by CES2 high vs low. Predicted-vs-actual hazard ratios with 95% CIs; concordance index reported. **Stretch goal:** External validation on DepMap — does CES2 expression predict Irinotecan IC₅₀ in pancreatic cancer cell lines? README's headline frames the project as "what would be possible if Beharry's probe were deployed clinically — answered with the public cohort that already exists."
+
+#### Article 2 ranking
+
+| Variable | Score (1–10) | One-line justification |
+|---|---|---|
+| Data availability | 7 | TCGA-PAAD + DepMap directly support the downstream biomarker-stratification question; not the paper's own data, but a strong proxy benchmark |
+| Data access ease | 8 | TCGA is one of the most accessible benchmarks in ML — well-documented Python clients (cBioPortalData, GDC API), CSV downloads from DepMap |
+| Task tractability on laptop / free GPU | 7 | Cohort survival modeling adds a small piece beyond plain regression; still trains in seconds-to-minutes on CPU |
+| Tooling alignment with my current skills | 6 | sklearn + pandas already familiar; lifelines / scikit-survival are new but Python-native and well-documented |
+| Problem clarity | 7 | Biomarker-to-response is a textbook clinical-ML task; main ambiguity is which survival endpoint and treatment-subgroup filter to use |
+| Reproducibility signals | 4 | Paper itself releases no code/data; but TCGA + DepMap function as the field's gold-standard reproducibility benchmark for this question |
+| Portfolio impact | 8 | Precision oncology + pancreatic cancer biomarker prediction is highly recruiter-legible across pharma, biotech, and academic ML/health-AI roles |
+| My personal interest | TBD | Awaiting student score |
+
+**Article 2 overall score:** Provisional (7 of 8 variables): (7 + 8 + 7 + 6 + 7 + 4 + 8) / 7 = 47 / 7 = **6.7 / 10**
+
+**Article 2 verdict:** A credible — and meaningfully different — GitHub project is achievable by treating the paper's chemical-biology contribution as the *motivation* for a precision-oncology biomarker-prediction task, then using TCGA-PAAD and DepMap (both public, both well-tooled) as the actual data source. The project is data-richer than Article 1's antimicrobial SAR angle and bridges chemistry to clinical ML, which is a strong story for advisor and recruiter audiences.
+
 ### Professor-level rollup
 
 - **Article 1 overall:** 6.4 (provisional)
-- **Professor overall** = 6.4 / 1 = **6.4 / 10** (provisional — single article; awaiting personal-interest score)
+- **Article 2 overall:** 6.7 (provisional)
+- **Professor overall** = (6.4 + 6.7) / 2 = 13.1 / 2 = 6.55 ≈ **6.6 / 10** (provisional — both articles awaiting personal-interest scores)
 
 ### Summary for this professor
 
-- **Common thread across their work:** Only one article processed so far. Apparent direction (from Article 1 + cited prior work [ref. 19, JACS 2023]): photopharmacology — using photoremovable protecting groups (especially coumarin-based DEAC photocages) to give light-controlled spatial and temporal release of bioactive natural products, applied across cancer and antimicrobial settings.
-- **Dominant data modality:** Tabular molecular descriptors / Morgan fingerprints derived from SMILES (the standard small-molecule SAR featurization stack).
-- **Biggest obstacle for me to replicate their work publicly:** Data access — paper explicitly states experimental data is not shared. Any portfolio project will use public antimicrobial-activity databases (CO-ADD / ChEMBL) as a proxy rather than reproducing the paper's measurements.
-- **Skills I would gain by working with them:** Photopharmacology / photocage chemistry; small-molecule antimicrobial SAR; biofilm biology; molecular docking against bacterial enzyme targets (e.g., KatA); standard medicinal-chemistry ML featurization (RDKit + Morgan fingerprints); ChEMBL / CO-ADD database querying.
+- **Common thread across their work:** Both articles use rationally designed small molecules as **functional reporters or actuators on a clinically relevant biological target**. Article 1 (photocaged β-lapachone) uses light to *actuate* — releasing a catalase-inhibiting antimicrobial only where and when irradiated. Article 2 (Benz-AP / probe 2) uses fluorescence to *report* — turning on a ratiometric signal in the presence of hCES2 to read out a clinical biomarker for Irinotecan response. The unifying philosophy is "tunable small molecules whose biological activity (or detectability) is controlled by an external trigger" — light in Article 1, enzymatic hydrolysis in Article 2.
+- **Dominant data modalities:** (i) Small-molecule descriptors / Morgan fingerprints from SMILES for SAR work (Article 1's portfolio angle); (ii) cohort-level RNA-seq + clinical features for biomarker-stratification work (Article 2's portfolio angle). The two articles point to two different ML toolchains rather than one shared one.
+- **Biggest obstacle for me to replicate their work publicly:** Data access — both papers either explicitly state data is not shared (Article 1) or rely on biobanked PDX tissue that isn't publicly distributable (Article 2). Both portfolio projects rely on *adjacent* public benchmarks (CO-ADD / ChEMBL for Article 1; TCGA-PAAD / DepMap for Article 2) rather than reproducing the papers' specific measurements.
+- **Skills I would gain by working with them:** Photopharmacology / photocage chemistry; fluorescent chemosensor design; small-molecule antimicrobial SAR; biofilm biology; molecular docking against bacterial enzyme targets (e.g., KatA); standard medicinal-chemistry ML featurization (RDKit + Morgan fingerprints); ChEMBL / CO-ADD querying; **clinical-cohort biomarker stratification (TCGA-PAAD), survival analysis with lifelines / scikit-survival, cell-line drug-sensitivity benchmarking with DepMap**. Article 2 specifically gives an entry point into clinical / health-AI tooling that Article 1 doesn't.
 
 ### Open items / notes
 
 - Lab webpage URL for Prof. Beharry not yet confirmed — verify before finalizing.
 - Personal interest score for Article 1 not yet provided by student.
-- Beharry has only one article processed so far; rank may shift substantially as additional articles are added and the simple-mean rollup updates.
-- CO-ADD academic registration not yet completed — confirm dataset accessibility before relying on it for the portfolio project.
+- Personal interest score for Article 2 not yet provided by student.
+- CO-ADD academic registration not yet completed — confirm dataset accessibility before relying on it for the Article 1 portfolio project.
+- TCGA-PAAD subset filter (which patients received Irinotecan-containing regimens vs. gemcitabine-based) needs to be pinned down from the GDC clinical metadata — confirm cohort size after filtering before committing to the Cox PH design.
+- The two Beharry articles point to genuinely different ML toolchains (small-molecule SAR vs. clinical-cohort survival modeling). Worth noting in any advisor conversation that the lab itself spans both threads, so a thesis would likely concentrate on one of the two directions rather than both.
 
 ---
 
