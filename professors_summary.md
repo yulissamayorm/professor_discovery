@@ -6,7 +6,7 @@ A rolled-up view of every professor evaluated, with each paper, its dataset situ
 
 | Rank | Professor | Affiliation | Articles | Dominant Modality | Professor-Level Overall | Status |
 |------|-----------|-------------|----------|-------------------|--------------------------|--------|
-| 1 | [Andrew A. Beharry](#andrew-a-beharry) | University of Toronto Mississauga | 2 | Small-molecule descriptors (RDKit) for SAR; cohort RNA-seq + clinical features for biomarker stratification | 6.6 / 10 | Provisional — both articles awaiting personal-interest scores |
+| 1 | [Andrew A. Beharry](#andrew-a-beharry) | University of Toronto Mississauga | 3 | Small-molecule descriptors (RDKit) for SAR; cohort RNA-seq + clinical features for biomarker stratification | 6.4 / 10 | Provisional — all three articles awaiting personal-interest scores |
 | 2 | [Dwight S. Seferos](#dwight-s-seferos) | University of Toronto | 3 | Tabular molecular descriptors (RDKit from SMILES) | 6.2 / 10 | Provisional — all three articles awaiting personal-interest scores |
 
 ---
@@ -103,11 +103,55 @@ A rolled-up view of every professor evaluated, with each paper, its dataset situ
 
 **Article 2 verdict:** A credible — and meaningfully different — GitHub project is achievable by treating the paper's chemical-biology contribution as the *motivation* for a precision-oncology biomarker-prediction task, then using TCGA-PAAD and DepMap (both public, both well-tooled) as the actual data source. The project is data-richer than Article 1's antimicrobial SAR angle and bridges chemistry to clinical ML, which is a strong story for advisor and recruiter audiences.
 
+### Article 3: Tellurophene-Appended BODIPY Photosensitizers for Photodynamic Therapy
+
+- **Full citation:** Campbell, J. W., Tung, M. T., Taylor, B. B., Beharry, A. A., & Thompson, A. (2024). A series of potent BODIPY photosensitisers featuring tellurophene motifs at boron. *Organic & Biomolecular Chemistry*, 22(20), 4157–4162. DOI: 10.1039/d4ob00546e
+- **Article type:** Primary research article in collaboration with Alison Thompson's group at Dalhousie. Beharry is co-corresponding author; the Beharry-lab student (Tung) handled photophysics and HeLa cell-toxicity measurements while the Thompson group handled synthesis.
+- **Problem in plain English:** Photodynamic therapy (PDT) kills cancer cells by exciting a photosensitizer (PS) with light, generating cytotoxic singlet oxygen (¹O₂). BODIPY dyes are popular PS scaffolds because they're tunable, but their natural state favors fluorescence over the triplet state required for ¹O₂ generation. Adding a heavy atom near the chromophore promotes intersystem crossing → triplet → ¹O₂. Halogens work; this paper uses **tellurium** (heavier than the halogens, plus eight stable isotopes that double as a mass-cytometry mass label) appended via tellurophene at the BODIPY boron center. The paper expands the synthetic scope across 11 BODIPY substituents and reports an 8-fold improvement in light IC₅₀ vs prior tellurophene-BODIPY designs.
+- **ML task type:** No ML in the paper. Reframed as **structure → photophysics regression** on a tiny dataset: tabular molecular descriptors of [Te]-BODIPY analogues → singlet-oxygen quantum yield (ΦΔ), light IC₅₀ (μM), or phototoxicity index. Genuinely distinct from Article 1 (antimicrobial MIC) and Article 2 (clinical-cohort survival).
+- **Input representation:**
+  - Modality: Tabular molecular descriptors and Morgan fingerprints from SMILES; same RDKit-based stack as Article 1.
+  - Preprocessing: Hand-curated SMILES for each BODIPY analogue (Tables 1 and 3 of the paper); RDKit descriptor + fingerprint computation. Optional domain-knowledge feature: presence and proximity of a heavy atom relative to the chromophore.
+- **Output representation:** Singlet-oxygen quantum yield ΦΔ (primary, distinct from prior articles' targets); light IC₅₀ (μM) for HeLa as a secondary target; phototoxicity index (light IC₅₀ / dark IC₅₀) as a stretch-goal target.
+- **Model architecture (brief):** Tiny-data tabular regression — ridge as the linear baseline, XGBoost as the non-linear comparator. With ~9 in-paper compounds + literature-mined BODIPY photosensitizers (~30–50 total), the model is small but interpretable.
+- **Dataset used in the paper:**
+  - Name: In-paper Table 1 (synthetic scope, 11 successful + 6 failed substrates 4j–4o) and Table 3 (photophysical + cell-viability data for the 9 successful compounds).
+  - Size: 9 [Te]-BODIPYs with ΦΔ, ε, λ_max, dark IC₅₀, light IC₅₀, and phototoxicity index reported.
+  - Source: Wet-lab synthesis at Dalhousie University; photophysics (DPBF / Eosin Y standard) and HeLa MTT assays at University of Toronto Mississauga.
+  - Public? The data itself is published in Table 3 of the paper (unusually transparent vs Articles 1 and 2), but no separate machine-readable release.
+  - Link: Table 3 of the paper / ESI; no separate dataset URL.
+- **Reported headline metric:** ΦΔ values 0.17–0.85 across the series; light IC₅₀ as low as 5 nM (compounds 4g and 4h); phototoxicity index up to >2640. Under similar HeLa conditions, **clinical photosensitizers Photofrin (PI > 4.3) and Hypericin (PI > 12) are dramatically less potent** — the [Te]-BODIPYs are competitive with state-of-the-art clinical PSs.
+- **Public alternatives to replicate or approximate this:**
+  - Hand-curated Table 3 from this paper — 9 compounds — match: **direct** — access: medium (PDF table extraction + SMILES drawing for each analogue)
+  - Literature BODIPY photophysics from Loudet & Burgess *Chem. Rev.* 2007 and the photosensitizer papers cited in refs 4–14 / 25–28 of this article — extends the dataset to ~30–50 compounds — match: **medium-to-close** — access: hard (manual literature mining; no aggregated public release)
+  - PhotochemCAD — small-molecule photophysics database — match: **loose** (broader chromophore set; few BODIPYs specifically) — access: easy (https://www.photochemcad.com/)
+- **Data access difficulty (for the paper's own dataset):** Medium — Table 3 is published directly in the paper, but it requires hand-curation (text extraction + SMILES drawing for each analogue). No machine-readable release.
+- **Tooling I would need to learn:** Same RDKit + sklearn / XGBoost stack as Article 1 — no new ML tooling required for the headline angle. Optional for a stretch goal: descriptor-based predictors of singlet-oxygen quantum yield from quantum-chemistry literature, or a small TDDFT calculation pipeline if extending beyond pure ML descriptors.
+- **Portfolio angle (distinct from Articles 1 and 2):** Headline: *"Predicting singlet-oxygen quantum yield (ΦΔ) of BODIPY photosensitizers from molecular structure — a tiny-data photophysics ML benchmark."* Hand-curate Table 3 (9 compounds), then extend via Loudet & Burgess and the cited photophysics papers (~30–50 compounds total). Featurize with RDKit. Train ridge vs XGBoost on ΦΔ. Single notebook with predicted-vs-actual scatter, a learning curve as the dataset is extended via literature mining, and a feature-importance plot. **Stretch:** binary "successful synthesis" classifier on the failed substrates 4j–4o to predict which BODIPY backbones tolerate the nucleophilic-substitution route. README's headline frames the project as "medicinal chemistry SAR on extreme small-data — when literature mining IS the data pipeline."
+
+#### Article 3 ranking
+
+| Variable | Score (1–10) | One-line justification |
+|---|---|---|
+| Data availability | 5 | ~9 compounds in this paper directly; extendable to ~30–50 via literature mining of cited photophysics papers; no aggregated public BODIPY photophysics dataset |
+| Data access ease | 6 | Paper Table 3 is hand-curatable; literature mining is moderate manual effort; no API or download for an aggregated source |
+| Task tractability on laptop / free GPU | 8 | Tiny tabular regression; trains in seconds on CPU |
+| Tooling alignment with my current skills | 5 | Same RDKit + sklearn / XGBoost stack as Article 1; no new ML tooling required |
+| Problem clarity | 7 | ΦΔ and phototoxicity index are well-defined, standardized targets; main ambiguity is which solvent / irradiation condition to standardize on across literature sources |
+| Reproducibility signals | 5 | Table 3 publishes the full photophysical + cell-viability dataset directly in the paper — unusually transparent vs Articles 1 and 2; no machine-readable release though |
+| Portfolio impact | 7 | Photodynamic therapy + cancer is recruiter-legible; tiny-data + literature-mining narrative adds story richness; somewhat narrower than precision oncology (Article 2) or antibiotic resistance (Article 1) |
+| My personal interest | TBD | Awaiting student score |
+
+**Article 3 overall score:** Provisional (7 of 8 variables): (5 + 6 + 8 + 5 + 7 + 5 + 7) / 7 = 43 / 7 = **6.1 / 10**
+
+**Article 3 verdict:** A credible — and meaningfully different — GitHub project is achievable by hand-curating Table 3 and extending via literature mining of cited BODIPY photophysics papers, then training a tiny-data regressor for ΦΔ. The data scarcity is genuine but is itself the point: this is the "medicinal chemistry SAR on extreme small-data" story rather than another large-cohort regression. Distinct from Article 1 (antimicrobial MIC) and Article 2 (clinical-cohort survival), giving Beharry's portfolio three genuinely different ML angles.
+
 ### Professor-level rollup
 
 - **Article 1 overall:** 6.4 (provisional)
 - **Article 2 overall:** 6.7 (provisional)
-- **Professor overall** = (6.4 + 6.7) / 2 = 13.1 / 2 = 6.55 ≈ **6.6 / 10** (provisional — both articles awaiting personal-interest scores)
+- **Article 3 overall:** 6.1 (provisional)
+- **Professor overall** = (6.4 + 6.7 + 6.1) / 3 = 19.2 / 3 = **6.4 / 10** (provisional — all three articles awaiting personal-interest scores)
 
 ### Summary for this professor
 
@@ -124,6 +168,9 @@ A rolled-up view of every professor evaluated, with each paper, its dataset situ
 - CO-ADD academic registration not yet completed — confirm dataset accessibility before relying on it for the Article 1 portfolio project.
 - TCGA-PAAD subset filter (which patients received Irinotecan-containing regimens vs. gemcitabine-based) needs to be pinned down from the GDC clinical metadata — confirm cohort size after filtering before committing to the Cox PH design.
 - The two Beharry articles point to genuinely different ML toolchains (small-molecule SAR vs. clinical-cohort survival modeling). Worth noting in any advisor conversation that the lab itself spans both threads, so a thesis would likely concentrate on one of the two directions rather than both.
+- Personal interest score for Article 3 not yet provided by student.
+- Article 3 dataset is extreme tiny-data (~9 in-paper, ~30–50 with literature mining) — confirm willingness to do the manual literature curation as part of the project before committing to the photophysics angle.
+- The above "two Beharry articles point to two ML toolchains" bullet now slightly understates the picture: Article 3 adds a third toolchain flavor (small-data SAR with literature-mined data extension). The earlier bullet has been left unchanged on purpose — flag this to the user for possible rephrasing.
 
 ---
 
