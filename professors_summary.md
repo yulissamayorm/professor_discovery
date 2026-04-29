@@ -6,7 +6,7 @@ A rolled-up view of every professor evaluated, with each paper, its dataset situ
 
 | Rank | Professor | Affiliation | Articles | Dominant Modality | Professor-Level Overall | Status |
 |------|-----------|-------------|----------|-------------------|--------------------------|--------|
-| 1 | [Benjamín Sánchez-Lengeling](#benjamín-sánchez-lengeling) | University of Toronto (department to be confirmed) | 2 | SMILES sequences (organic, QM9 / ZINC) + 3D voxel images (inorganic crystals, Materials Project); generative ML (VAE family) | 7.4 / 10 | Provisional — both articles are middle-authored PhD-era papers; awaiting personal-interest scores and confirmation against independent U of T group's first-author work |
+| 1 | [Benjamín Sánchez-Lengeling](#benjamín-sánchez-lengeling) | University of Toronto (department to be confirmed) | 3 | SMILES sequences (organic, QM9 / ZINC / MOSES) + 3D voxel images (inorganic crystals, Materials Project); generative ML (VAE family) + standardized benchmarking | 7.7 / 10 | Provisional — all three articles are middle-authored PhD-era papers; awaiting personal-interest scores and confirmation against independent U of T group's first-author work |
 | 2 | [Andrew A. Beharry](#andrew-a-beharry) | University of Toronto Mississauga | 3 | Small-molecule descriptors (RDKit) for SAR; cohort RNA-seq + clinical features for biomarker stratification | 6.4 / 10 | Provisional — all three articles awaiting personal-interest scores |
 | 3 | [Dwight S. Seferos](#dwight-s-seferos) | University of Toronto | 3 | Tabular molecular descriptors (RDKit from SMILES) | 6.2 / 10 | Provisional — all three articles awaiting personal-interest scores |
 
@@ -112,11 +112,59 @@ A rolled-up view of every professor evaluated, with each paper, its dataset situ
 
 **Article 2 verdict:** A credible — and meaningfully different — GitHub project is achievable using the released iMatGen code as a starting point, with the primary cost being **substantially more complex ML tooling than Article 1** (3D CNNs + custom invertible voxel representation + pymatgen) and the realistic compromise of skipping DFT post-validation (relying on pre-computed Materials Project energies instead). The strongest portfolio framings are domain-transfer to a different binary chemistry (e.g., Mn-O echoing Seferos), or the cross-modality bridge between Articles 1 and 2 (molecular SMILES VAE vs. crystal voxel VAE on a unified evaluation table) — the latter is particularly strong because it explicitly traces the lineage of Sánchez-Lengeling's own PhD trajectory.
 
+### Article 3: MOSES — A Standardized Benchmarking Platform for Molecular Generative Models
+
+- **Full citation:** Polykovskiy, D., Zhebrak, A., **Sanchez-Lengeling, B.**, Golovanov, S., Tatanov, O., Belyaev, S., Kurbanov, R., Artamonov, A., Aladinskiy, V., Veselov, M., Kadurin, A., Johansson, S., Chen, H., Nikolenko, S., Aspuru-Guzik, A., & Zhavoronkov, A. (2020). Molecular Sets (MOSES): A benchmarking platform for molecular generation models. *Frontiers in Pharmacology*, 11, 565644. DOI: 10.3389/fphar.2020.565644 (originally arXiv:1811.12823, 2018)
+- **Authorship caveat:** Sánchez-Lengeling is again a **middle author** (3rd of 16), still listed under his Harvard affiliation (Department of Chemistry and Chemical Biology). Per the explicit author contributions: *"DP and AZhe, BS-L, VA, MV, SJ, HC, SN, AA-G, AZha wrote the manuscript"* — i.e., his contribution was **manuscript writing**, not designing or conducting the experiments. Lead author Daniil Polykovskiy is at Insilico Medicine; co-corresponding authors are Polykovskiy + Zhavoronkov (Insilico) + Aspuru-Guzik (U Toronto) + Nikolenko (HSE / Neuromation). **Same pattern as Articles 1 and 2: middle-authored Harvard-PhD-era contribution to a project led by another group.** With three articles processed, the pattern is now unambiguous — none of the survey's data points come from his independent University of Toronto group.
+- **Article type:** **Benchmark / platform paper** — not a new generative model, but the standardized *infrastructure* (dataset + metrics + baseline implementations + open-source package) for evaluating molecular generation models. Conceptually analogous to ImageNet for vision or GLUE for NLP, but for molecular generative ML.
+- **Problem in plain English:** By 2018-2020 there were dozens of molecular generative models (VAEs, GANs, autoregressive RNNs, junction-tree VAEs, etc.), but no standardized way to compare them. Each paper used different datasets, different splits, and different evaluation metrics, making "our model is better than X" claims hard to verify. The paper provides everything needed for fair comparison: a curated dataset, train / test / scaffold-test splits, ten evaluation metrics with reference implementations, and reference implementations of seven baseline models. Released as `pip install molsets`.
+- **ML task type:** **Primary ML infrastructure** (not a new model). The contribution is the benchmark itself + the implementations of the baselines + the metric library.
+- **Input representation:**
+  - Modality: SMILES strings, same as Article 1
+  - Preprocessing: Filter ZINC Clean Leads (4.59M molecules) by molecular weight (250–350 Da), rotatable bonds (≤ 7), XlogP (≤ 3.5), removing charged atoms; apply custom medicinal-chemistry filters (MCF) and PAINS filters; final dataset = 1,936,962 molecules
+- **Output representation:** Models are evaluated on ten metrics — **Validity** (RDKit-parseable), **Uniqueness@1k/@10k**, **Novelty** (fraction not in training set), **Filters** (fraction passing MCF + PAINS), **Fragment similarity (Frag)** (cosine similarity of BRICS-fragment frequencies), **Scaffold similarity (Scaf)** (cosine similarity of Bemis-Murcko-scaffold frequencies on Test and TestSF splits), **SNN** (Tanimoto similarity to nearest-neighbor on Morgan fingerprints), **Internal diversity (IntDiv1, IntDiv2)** (avg pairwise Tanimoto distance), **Fréchet ChemNet Distance (FCD)** (Fréchet distance in ChemNet activation space), and **property-distribution Wasserstein distances** for MW / logP / QED / SA
+- **Model architecture (brief):** Multiple — the paper benchmarks **CharRNN** (character-level RNN on SMILES), **VAE** (SMILES-based), **AAE** (Adversarial Autoencoder), **JTN-VAE** (Junction Tree VAE on graphs), **LatentGAN** (latent-vector GAN on autoencoder embeddings), plus three non-neural baselines: **HMM**, **NGram**, and **Combinatorial** (BRICS fragment recombination). All implementations are PyTorch-based, hyperparameters tuned via random search, all bundled in the `molsets` package.
+- **Dataset used in the paper:**
+  - Name: **MOSES dataset** (derived from ZINC Clean Leads)
+  - Size: 1,936,962 molecules total → 1,584,664 train / 176,075 random test / 176,226 scaffold test (TestSF — held-out scaffolds for assessing generalization to unseen chemotypes)
+  - Source: ZINC Clean Leads + custom filtering pipeline (MCF + PAINS + atom-type restrictions)
+  - Public? **Yes — the dataset, splits, metric implementations, baseline weights, and platform code are all open source.**
+  - Link: https://github.com/molecularsets/moses + `pip install molsets`
+- **Reported headline metric:** Across all metrics, **CharRNN performs best overall** (best FCD/Test = 0.073, best Frag = 1.0, best Scaff/Test = 0.924), suggesting that a simple character-level language model on SMILES is hard to beat for distribution-learning. **VAE has the highest SNN (0.626 vs. train baseline 0.642) but lowest novelty (0.695)** — strong overfitting indicator. **Combinatorial generator has the highest diversity** (IntDiv1 = 0.873). All neural models implicitly learn to avoid PAINS / MCF filters even though such restrictions were never explicitly imposed during training.
+- **Public alternatives to replicate or approximate this:**
+  - **Direct match — the platform itself:** https://github.com/molecularsets/moses + `pip install molsets` — match: **direct, perfect** — access: easy (one pip install)
+  - **GuacaMol** (Brown et al. 2019) — competing benchmark for molecular generation, focuses on goal-directed tasks rather than distribution learning — match: complementary — access: easy (https://github.com/BenevolentAI/guacamol)
+  - **MoleculeNet** (Wu et al. 2018) — benchmark for *predictive* molecular ML (regression / classification), not generative — match: orthogonal — access: easy (`pip install deepchem`)
+- **Data access difficulty (for the paper's own dataset):** **Trivial** — `pip install molsets` and the dataset, splits, metrics, and baseline weights are all there. This is the lowest-friction data access in the entire survey.
+- **Tooling I would need to learn:** PyTorch (carry-over from Articles 1 and 2), the `molsets` package (one new domain library, but well-documented and the metric implementations are fully abstracted), RDKit (carry-over). **Substantially less new tooling than Article 2** — the platform handles the evaluation harness for you.
+- **Portfolio angle (distinct from Articles 1 and 2):** This article is **infrastructure**, not a model — which makes it the **easiest on-ramp** for a portfolio project that aims to be directly comparable to the published literature. Three viable framings:
+  1. **Train one new model and report MOSES metrics vs. all baselines:** *"Implementing a transformer-based molecular generator and benchmarking with MOSES against CharRNN, VAE, JTN-VAE, and LatentGAN."* This is the highest-leverage angle — you build one model and the platform gives you a publication-grade comparison table for free.
+  2. **Use MOSES as the evaluation harness for property-conditioned generation:** Train a generative model that conditions on QED or SA, evaluate the property-distribution Wasserstein metric to quantitatively show that conditioning works.
+  3. **Bridge across the three Sánchez-Lengeling articles:** Use MOSES (Article 3) as the evaluation harness to compare a SMILES-VAE (Article 1's family) against a graph-based generator. Trace the lineage of the lab's generative-chemistry work in a single notebook.
+
+#### Article 3 ranking
+
+| Variable | Score (1–10) | One-line justification |
+|---|---|---|
+| Data availability | 10 | MOSES *is* the gold-standard public benchmark for molecular generative ML; train / test / scaffold-test splits all curated and released |
+| Data access ease | 10 | `pip install molsets` installs the dataset, baselines, metrics, and trained weights — the lowest-friction data access in the entire survey |
+| Task tractability on laptop / free GPU | 6 | Training a CharRNN baseline on 1.94M molecules takes hours on a free Colab GPU but is feasible; the platform's baselines are explicitly designed to be runnable; better than Article 1 because the harness is bundled |
+| Tooling alignment with my current skills | 5 | PyTorch + RDKit (carry-over from Articles 1 and 2) + the `molsets` package (one new domain library, well-abstracted); substantially less new tooling than Article 2 |
+| Problem clarity | 9 | Benchmark protocol is unambiguous — train on MOSES train, generate 30K, compute metrics with provided functions; the ten metrics are formally defined; very clean |
+| Reproducibility signals | 10 | Entire platform is on GitHub + PyPI; baseline implementations included; trained weights bundled; hyperparameters documented |
+| Portfolio impact | 9 | Using MOSES gives instant comparability with all published baselines — a "I trained model X and here are MOSES metrics vs. CharRNN, VAE, JTN-VAE, LatentGAN" framing is publication-grade evaluation that recruiters can verify directly against the literature |
+| My personal interest | TBD | Awaiting student score |
+
+**Article 3 overall score:** Provisional (7 of 8 variables): (10 + 10 + 6 + 5 + 9 + 10 + 9) / 7 = 59 / 7 = **8.4 / 10**
+
+**Article 3 verdict:** This is the **highest-scoring article in the entire survey**, and rightly so — it's a standardized benchmark platform with a `pip install` interface, full code release, and the lowest-friction evaluation pipeline available for molecular generative ML. The strongest portfolio framing is *"train one new model and report MOSES metrics vs. all the published baselines"* — that gives you a publication-grade evaluation table for the cost of one model implementation, which is the best leverage in the entire survey for a portfolio project.
+
 ### Professor-level rollup
 
 - **Article 1 overall:** 7.7 (provisional)
 - **Article 2 overall:** 7.0 (provisional)
-- **Professor overall** = (7.7 + 7.0) / 2 = 14.7 / 2 = 7.35 ≈ **7.4 / 10** (provisional — both articles are middle-authored PhD-era papers; awaiting personal-interest scores)
+- **Article 3 overall:** 8.4 (provisional)
+- **Professor overall** = (7.7 + 7.0 + 8.4) / 3 = 23.1 / 3 = **7.7 / 10** (provisional — all three articles are middle-authored PhD-era papers; awaiting personal-interest scores)
 
 ### Summary for this professor
 
@@ -135,6 +183,11 @@ A rolled-up view of every professor evaluated, with each paper, its dataset situ
 - **Pattern emerging across both articles processed:** Both are middle-authored PhD-era contributions from Sánchez-Lengeling's Harvard / Aspuru-Guzik-group years (Article 1 = 5th of 10 authors, Article 2 = 4th of 7 authors), *not* first-author or corresponding-author work from his independent University of Toronto group. The "critical gap" flagged after Article 1 is **stronger** after Article 2 — pulling at least one first-author or corresponding-author paper from his independent U of T group is the single most important next step before treating his professor-level score as representative of his current research direction.
 - Article 2's score of 7.0 is lower than Article 1's 7.7 primarily because of harder ML tooling (3D CNNs + custom voxel pipeline + pymatgen) and harder compute (DFT post-validation realistically out of reach for a portfolio project). Both articles retain perfect-10 reproducibility because both author groups released code + data on GitHub.
 - The Summary section's existing bullets reference "only one article processed so far" and "SMILES strings (sequence-based)" as the dominant modality — these are now slightly stale after Article 2 (which adds 3D voxel images of crystals as a second modality, and Materials Project as a second public benchmark). Left unchanged on purpose per the no-rewrite preference; flag this for possible rephrasing.
+- Personal interest score for Article 3 not yet provided by student.
+- **Pattern is now confirmed across all three articles processed:** All three are middle-authored PhD-era contributions from Sánchez-Lengeling's Harvard / Aspuru-Guzik-group years (Article 1 = 5th of 10, Article 2 = 4th of 7, Article 3 = 3rd of 16). Author contributions on Article 3 specifically: *"writing the manuscript"*. None of the survey's three data points come from his independent University of Toronto group. This remains the **single most important next step** for advisor evaluation: pull at least one first-author or corresponding-author paper from his independent U of T group and re-rank.
+- Article 3's score of 8.4 is the **highest in the entire survey**. The boost reflects MOSES being a packaged benchmark platform (`pip install molsets`), not just a model — using MOSES gives publication-grade evaluation comparability for the cost of one model implementation. The rubric is treating this fairly: gold-standard public benchmarks with bundled baselines + reference implementations are genuinely the easiest possible portfolio target.
+- Updated professor-level mean: (7.7 + 7.0 + 8.4) / 3 = **7.7 / 10** — Sánchez-Lengeling stays rank 1 over Beharry (6.4) and Seferos (6.2). The gap to Beharry has widened from 1.0 (after Article 2) to **1.3** after Article 3.
+- Across the three articles, a coherent generative-chemistry trajectory emerges that the student could leverage as a single integrated portfolio narrative: Article 1 (foundational organic-molecule SMILES VAE) → Article 2 (extension to inorganic crystals via invertible 3D-voxel representation) → Article 3 (standardized benchmarking infrastructure for the whole field). A "bridge" project that ties all three together using MOSES as the evaluation harness is the single highest-leverage portfolio framing flagged in the survey so far.
 
 ---
 
