@@ -7,8 +7,9 @@ A rolled-up view of every professor evaluated, with each paper, its dataset situ
 | Rank | Professor | Affiliation | Articles | Dominant Modality | Professor-Level Overall | Status |
 |------|-----------|-------------|----------|-------------------|--------------------------|--------|
 | 1 | [Benjamín Sánchez-Lengeling](#benjamín-sánchez-lengeling) | University of Toronto (department to be confirmed) | 3 | SMILES sequences (organic, QM9 / ZINC / MOSES) + 3D voxel images (inorganic crystals, Materials Project); generative ML (VAE family) + standardized benchmarking | 7.7 / 10 | Provisional — all three articles are middle-authored PhD-era papers; awaiting personal-interest scores and confirmation against independent U of T group's first-author work |
-| 2 | [Andrew A. Beharry](#andrew-a-beharry) | University of Toronto Mississauga | 3 | Small-molecule descriptors (RDKit) for SAR; cohort RNA-seq + clinical features for biomarker stratification | 6.4 / 10 | Provisional — all three articles awaiting personal-interest scores |
-| 3 | [Dwight S. Seferos](#dwight-s-seferos) | University of Toronto | 3 | Tabular molecular descriptors (RDKit from SMILES) | 6.2 / 10 | Provisional — all three articles awaiting personal-interest scores |
+| 2 | [Seyed Mohamad Moosavi](#seyed-mohamad-moosavi) | University of Toronto (department to be confirmed) | 1 | MOF crystal structures + Monte Carlo adsorption properties from a hypothetical 325K-MOF database (Materials Cloud); graph-similarity / data mining + property prediction | 7.3 / 10 | Provisional — single middle-authored EPFL-postdoc-era paper; awaiting personal-interest score and confirmation against independent U of T group's first-author work |
+| 3 | [Andrew A. Beharry](#andrew-a-beharry) | University of Toronto Mississauga | 3 | Small-molecule descriptors (RDKit) for SAR; cohort RNA-seq + clinical features for biomarker stratification | 6.4 / 10 | Provisional — all three articles awaiting personal-interest scores |
+| 4 | [Dwight S. Seferos](#dwight-s-seferos) | University of Toronto | 3 | Tabular molecular descriptors (RDKit from SMILES) | 6.2 / 10 | Provisional — all three articles awaiting personal-interest scores |
 
 ---
 
@@ -188,6 +189,82 @@ A rolled-up view of every professor evaluated, with each paper, its dataset situ
 - Article 3's score of 8.4 is the **highest in the entire survey**. The boost reflects MOSES being a packaged benchmark platform (`pip install molsets`), not just a model — using MOSES gives publication-grade evaluation comparability for the cost of one model implementation. The rubric is treating this fairly: gold-standard public benchmarks with bundled baselines + reference implementations are genuinely the easiest possible portfolio target.
 - Updated professor-level mean: (7.7 + 7.0 + 8.4) / 3 = **7.7 / 10** — Sánchez-Lengeling stays rank 1 over Beharry (6.4) and Seferos (6.2). The gap to Beharry has widened from 1.0 (after Article 2) to **1.3** after Article 3.
 - Across the three articles, a coherent generative-chemistry trajectory emerges that the student could leverage as a single integrated portfolio narrative: Article 1 (foundational organic-molecule SMILES VAE) → Article 2 (extension to inorganic crystals via invertible 3D-voxel representation) → Article 3 (standardized benchmarking infrastructure for the whole field). A "bridge" project that ties all three together using MOSES as the evaluation harness is the single highest-leverage portfolio framing flagged in the survey so far.
+
+---
+
+## Seyed Mohamad Moosavi
+
+**Affiliation:** University of Toronto (specific department to be confirmed — likely Chemistry and/or Chemical Engineering and Applied Chemistry, based on his research area). At the time of Article 1 below he was a postdoc / PhD student in Berend Smit's group at École Polytechnique Fédérale de Lausanne (EPFL), Switzerland.
+
+**Lab focus (one sentence):** **Inferred** from Article 1 + Moosavi's broader publication trajectory (EPFL → U of T faculty): **machine learning and data-driven design for porous materials**, particularly metal–organic frameworks (MOFs) — including high-throughput computational screening, structural-motif identification ("adsorbaphores"), and ML-based property prediction for gas storage / separation / carbon capture applications. **Verify against the lab's current Toronto-era publications before treating this as authoritative.**
+
+**Lab webpage / Scholar:** Not yet provided — needs to be sourced.
+
+### Article 1: Data-Driven Design of MOFs for Wet Flue Gas CO₂ Capture (Adsorbaphore Identification)
+
+- **Full citation:** Boyd, P. G., Chidambaram, A., García-Díez, E., Ireland, C. P., Daff, T. D., Bounds, R., Gładysiak, A., Schouwink, P., **Moosavi, S. M.**, Maroto-Valer, M. M., Reimer, J. A., Navarro, J. A. R., Woo, T. K., García, S., Stylianou, K. C., & Smit, B. (2019). Data-driven design of metal–organic frameworks for wet flue gas CO₂ capture. *Nature*, 576, 253–256. DOI: 10.1038/s41586-019-1798-7
+- **Authorship caveat:** Moosavi is a **middle author** (9th of 16), listed under his EPFL affiliation (Laboratory of Molecular Simulation, Berend Smit's group) — **not from his current independent group at University of Toronto**. Per the explicit author contributions: *"S.M.M. carried out the similarity analysis"* — i.e., his specific contribution was the data-mining / clustering step that identified the three adsorbaphore motifs from the 106,680 CO₂-binding sites discovered by the screening pipeline. Senior corresponding author is Berend Smit (EPFL); the synthesis + experimental work was led by Stylianou (EPFL). **Same pattern as the three Sánchez-Lengeling articles processed earlier:** middle-authored pre-independent-PI contribution to a project led by another group. Pulling at least one first-author or corresponding-author paper from his independent U of T group remains the single most important next step for advisor evaluation.
+- **Problem in plain English:** Carbon capture from flue gas is a key climate-mitigation technology. **Metal–organic frameworks (MOFs)** are highly tunable solid adsorbents that can selectively bind CO₂. But realistic flue gas contains water (H₂O), and water competes with CO₂ for the same binding sites in most MOFs — destroying the selectivity. Drying flue gas first is prohibitively expensive. **Can data mining of a huge computational MOF database identify binding-site motifs whose CO₂/N₂ selectivity survives in wet flue gas?**
+- **ML / data-driven task type:** **Data-driven materials design** — high-throughput Monte Carlo screening + graph-similarity clustering for binding-site motif identification, followed by experimental synthesis of the predicted material. **Not modern deep learning** (no neural networks). The "similarity analysis" step (Moosavi's specific contribution) uses **maximum-clique detection on chemical graphs** to find common substructure motifs across 106,680 CO₂-binding sites — a classical computational-chemistry technique applied at scale. For ML reframing (portfolio purposes), the strongest angle is to use the released 325K-MOF database as training data for a neural property predictor, rather than reproducing the original adsorbaphore-identification pipeline.
+- **Input representation:**
+  - Modality: MOF crystal structures (CIF format) + computed adsorption properties (CO₂/N₂ Henry coefficients, working capacity, water Henry coefficient)
+  - Preprocessing: Pull MOFs from Materials Cloud release; parse via pymatgen; for property-prediction reframe → compute MOF descriptors (porosity, surface area, pore size distribution, building-block fingerprints) or train a graph neural network directly on the MOF crystal graph
+- **Output representation:** For the paper's actual task: identified binding-site motifs ("adsorbaphores") + predicted CO₂/N₂ selectivity in dry vs. wet conditions. For the ML reframe: regression target = CO₂/N₂ selectivity, CO₂ working capacity, or H₂O Henry coefficient.
+- **Model architecture (brief):** Paper itself = no neural network. Pipeline = (i) ToBasCCo MOF-generation algorithm, (ii) RASPA Monte Carlo for adsorption isotherms, (iii) ABSL binding-site locator, (iv) maximum-clique-based graph similarity clustering (MCQD library), (v) DFT validation. For ML reframe: gradient-boosted regressor (XGBoost / LightGBM) on hand-engineered MOF descriptors, or graph neural network (PyTorch Geometric / DGL) on the MOF crystal graph.
+- **Dataset used in the paper:**
+  - Name: **Hypothetical 325K-MOF database** (constructed via the ToBasCCo MOF-generation algorithm) + computed adsorption properties (CO₂, N₂, H₂O at flue-gas conditions)
+  - Size: 325,000 hypothetical MOFs; 8,325 top performers; 106,680 CO₂-binding sites identified
+  - Source: ToBasCCo-generated structures + RASPA Monte Carlo simulations at EPFL
+  - Public? **Yes — released on Materials Cloud with the computed adsorption data**
+  - Link: https://doi.org/10.24435/materialscloud:2018.0016/v3 (data) + https://github.com/peteboyd/tobascco (MOF generation) + https://github.com/peteboyd/adsorbaphore (similarity analysis) + https://bitbucket.org/tdaff/automation (binding-site locator)
+- **Reported headline metric:** 8,325 of 325,000 MOFs achieve CO₂ working capacity > 2 mmol g⁻¹ AND CO₂/N₂ selectivity > 50 (better than commercial zeolite 13X under dry conditions). Three adsorbaphore classes identified: **A1** (parallel aromatic rings ~7 Å apart, hydrophobic — preferred for wet flue gas, 31% of binding sites), **A2** (metal–oxygen bridges, 32%), **A3** (open metal sites, 21%). Two predicted MOFs (Al-PMOF, Al-PyrMOF) were synthesized and **maintain CO₂ capacity at 85% relative humidity, outperforming commercial zeolite 13X and activated carbon** in wet flue gas.
+- **Public alternatives to replicate or approximate this:**
+  - **Direct match — released code + data:** https://doi.org/10.24435/materialscloud:2018.0016/v3 + the three GitHub / BitBucket repos — match: **direct, perfect** — access: medium (multi-repo with a C library dependency for MCQD; not as `pip install`-bundled as Sánchez-Lengeling Article 3)
+  - **CoRE-MOF database** — ~14K experimentally-realized MOFs with computed properties — match: **close** (alternative MOF dataset for the ML property-prediction reframe) — access: easy (https://mof.tech.northwestern.edu/)
+  - **ARC-MOF / QMOF / MOFid** — additional curated MOF databases with quantum-chemistry properties — match: medium-to-close — access: easy (Zenodo / GitHub releases)
+- **Data access difficulty (for the paper's own dataset):** **Easy-to-medium** — Materials Cloud is a direct download; the multi-repo code structure is moderate friction.
+- **Tooling I would need to learn:** **pymatgen** for MOF parsing (carry-over from Sánchez-Lengeling Article 2), RDKit (carry-over), sklearn / XGBoost (familiar). For the ML property-prediction reframe: optionally **PyTorch Geometric** or **DGL** for a graph-neural-network baseline (new piece — substantial). For the original similarity-analysis pipeline: the **MCQD** C library + Python bindings (specialized, niche). Realistically out of reach for a portfolio: **RASPA Monte Carlo** for generating new adsorption data (hours per MOF on a CPU; you'd rely on the paper's pre-computed data instead).
+- **Portfolio angle:** This is **data-driven materials design**, not deep ML — which means the strongest portfolio framings reframe the paper rather than reproducing it. Three options:
+  1. **ML property prediction on the released 325K-MOF database:** *"Predicting CO₂/N₂ selectivity of metal–organic frameworks from structural descriptors — a benchmark on the EPFL 325K-MOF database."* Pull the released data, compute MOF descriptors (porosity, surface area, building-block fingerprints), train XGBoost vs. GNN baseline. Single notebook, predicted-vs-actual scatter, feature importance plot showing which structural features predict selectivity. **This is the highest-leverage angle** because it converts a Monte-Carlo / data-mining paper into a clean ML regression task with substantial public data.
+  2. **Reproduce the adsorbaphore-identification pipeline on a different chemistry:** *"Apply the maximum-clique-based binding-site clustering to the H₂-storage subset of CoRE-MOF — what motifs emerge?"* More faithful to the paper but more niche; requires the MCQD C library.
+  3. **Bridge to Sánchez-Lengeling's iMatGen (Article 2 of his section):** Use the 325K-MOF database as training data for a generative model for MOFs (analogous to iMatGen for V-O crystals but for the broader MOF design space). Strong story because it explicitly connects two faculty candidates' research areas.
+
+#### Article 1 ranking
+
+| Variable | Score (1–10) | One-line justification |
+|---|---|---|
+| Data availability | 9 | 325K-MOF database publicly released on Materials Cloud; not as universal a benchmark as Sánchez-Lengeling's QM9 / ZINC / MOSES, but a strong domain-specific dataset for MOF ML |
+| Data access ease | 8 | Materials Cloud direct download + pymatgen-compatible CIF format; only friction is the multi-repo code structure for the original adsorbaphore-identification pipeline |
+| Task tractability on laptop / free GPU | 5 | Training an ML property predictor on 325K MOFs is feasible on free Colab; reproducing the full Monte Carlo screening pipeline is realistically out of reach (RASPA / GCMC needs hours per material) |
+| Tooling alignment with my current skills | 5 | pymatgen + RDKit + sklearn / XGBoost is a familiar core; the GNN angle (PyTorch Geometric / DGL) adds one new piece; the original maximum-clique-graph-similarity pipeline (MCQD C library) is a specialized, niche dependency |
+| Problem clarity | 7 | Predicting CO₂/N₂ selectivity from MOF structure is a clean regression task; the original adsorbaphore-identification framing is more open-ended; the ML reframe is the cleaner version |
+| Reproducibility signals | 9 | Code AND data both released across multiple repos with the C library dependency for MCQD; slightly lower than Sánchez-Lengeling's perfect 10 because nothing is `pip install`-bundled |
+| Portfolio impact | 8 | Climate-tech / carbon-capture is highly recruiter-legible across cleantech, energy, and materials-AI roles; MOF property prediction is a recognized ML application area |
+| My personal interest | TBD | Awaiting student score |
+
+**Article 1 overall score:** Provisional (7 of 8 variables): (9 + 8 + 5 + 5 + 7 + 9 + 8) / 7 = 51 / 7 = **7.3 / 10**
+
+**Article 1 verdict:** A **highly credible** portfolio project is achievable using the released 325K-MOF database as training data for an ML property predictor (XGBoost on MOF descriptors, or GNN on the MOF crystal graph) — this reframes the paper's data-mining contribution into a clean ML regression task with substantial public data. The strongest portfolio framing is the property-prediction reframe rather than reproducing the original adsorbaphore-identification pipeline (which uses specialized graph-similarity tooling that's harder to scale into a portfolio narrative). Climate-tech / carbon-capture framing makes the project highly recruiter-legible.
+
+### Professor-level rollup
+
+- **Article 1 overall:** 7.3 (provisional)
+- **Professor overall** = 7.3 / 1 = **7.3 / 10** (provisional — single middle-authored EPFL-postdoc-era paper; awaiting personal-interest score)
+
+### Summary for this professor
+
+- **Common thread across their work:** Only one article processed so far, and like the three Sánchez-Lengeling articles it's a co-authored pre-independent-PI paper rather than independent-faculty work. Apparent direction (per Article 1 + Moosavi's broader publication trajectory at EPFL → U of T): **machine learning and data-driven design for porous materials**, particularly MOFs — high-throughput screening, structural-motif identification, ML-based property prediction for gas storage / separation / carbon-capture applications. **Verify the lab's current Toronto-era research direction by pulling first-author or corresponding-author papers from his independent group.**
+- **Dominant data modality:** MOF crystal structures (CIF format) + computed adsorption properties from large hypothetical-materials databases (Materials Cloud, CoRE-MOF, QMOF, etc.). Likely also graph representations and quantum-chemistry features in his more recent work — to be confirmed.
+- **Biggest obstacle for me to replicate their work publicly:** **Not data** (Article 1 uses a fully released 325K-MOF database) but **the original methodology relies on specialized non-ML tooling** (RASPA Monte Carlo, MCQD C library for graph clique detection) that's harder to scale into a portfolio than standard PyTorch / sklearn pipelines. The portfolio reframe (ML property prediction) sidesteps this.
+- **Skills I would gain by working with them:** MOF structural representation and parsing (pymatgen), high-throughput computational screening of porous materials, graph-similarity / motif-identification methods (maximum clique detection), Monte Carlo adsorption simulations (RASPA), ML property prediction for materials (sklearn / GNN), and the broader carbon-capture / gas-separation application domain.
+
+### Open items / notes
+
+- Affiliation, department, and lab webpage for Prof. Moosavi at University of Toronto **not yet confirmed** — verify (likely Chemistry and/or Chemical Engineering and Applied Chemistry) before finalizing.
+- **Critical gap:** Article 1 is a **middle-authored EPFL-postdoc-era paper** (9th of 16, contribution = "carried out the similarity analysis"), **not first-author or corresponding-author work** from his independent University of Toronto group. **Same pattern as the three Sánchez-Lengeling articles.** Before relying on this professor-level score, pull at least one first-author or corresponding-author paper from his independent group at U of T and re-rank.
+- Personal interest score for Article 1 not yet provided by student.
+- Article 1's score of 7.3 places Moosavi at rank 2 (between Sánchez-Lengeling at 7.7 and Beharry at 6.4). The data-driven materials-design framing is genuinely closer to "ML for chemistry" than the experimental chemistry papers from Beharry / Seferos, but less directly an ML paper than Sánchez-Lengeling's three.
+- **Cross-professor synergy worth flagging:** The 325K-MOF database from Article 1 + Sánchez-Lengeling's iMatGen (Article 2 of his section, V-O voxel VAE) + Sánchez-Lengeling's MOSES (Article 3, generative-chemistry benchmarking) form a natural triple for a portfolio project on **generative models for MOFs evaluated with MOSES-style benchmarks**. This is a stronger cross-faculty portfolio narrative than any single-professor angle in the survey so far.
 
 ---
 
